@@ -14,7 +14,7 @@ $(function() {
                 var linkscontainer = $('<div/>').addClass("row");
                 var titlecontainer = $('<div/>')
                     .append($('<div/>')
-                        .append($('<h1/>')
+                        .append($('<h2/>')
                             .addClass("page-header")
                             .text(album)
                         )
