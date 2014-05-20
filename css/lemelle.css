@@ -17,3 +17,27 @@ a:hover {
     overflow: auto;
     color: #333;
 }
+
+.portfolio-item {
+	margin-bottom: 25px;
+}
+
+.thumbnail {
+    background: #222;
+    border-color: #222
+}
+
+.photo-thumbnails {
+	margin-left: 10%;
+	margin-right: 10%;
+}
+
+.portfolio-section {
+    margin-bottom: 100px;
+}
+
+a.thumbnail:hover,
+a.thumbnail:focus,
+a.thumbnail.active {
+  border-color: #000;
+}
