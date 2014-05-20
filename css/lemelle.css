@@ -1,6 +1,7 @@
 body {
     background: #222;
     color: #fff;
+    overflow-x: hidden;
 }
 h1 {
     font-family: "Lucida Grande", "Lucida Sans Unicode", Arial, sans-serif;
