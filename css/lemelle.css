@@ -20,15 +20,17 @@ a:hover {
 
 .portfolio-item {
 	margin-bottom: 25px;
+    width: 200px;
+    height: 200px;
 }
 
 .thumbnail {
     background: #222;
     border-color: #222;
-    min-width: 200px;
-    min-height: 200px;
-    width: 200px;
-    height: 200px;
+    min-width: 210px;
+    min-height: 210px;
+    width: 210px;
+    height: 210px;
     display: block;
     margin-left: auto;
     margin-right: auto;

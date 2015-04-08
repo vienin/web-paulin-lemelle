@@ -34,18 +34,16 @@ var buildPortfolio = function (index) {
             .insertBefore($('#contact'))
 
         var first;
-        $.each(index[album], function () {
-            var photo = this;
-            var thumb = photo.split(".")[0] + "_tn.jpg";
-            var baseurl = 'http://www.paulin-lemelle.com/photos/' + album + "/";
+        $.each(index[album], function (thumb) {
+            var photo = index[album][thumb];
 
             if (first == undefined) {
                 // Add an entry to the portfolio for the album
                 first = $("<div/>")
                     .append($('<a/>')
-                        .append($('<img>')
+                        .append($('<div>')
                             .addClass("img-responsive")
-                            .prop('src', baseurl + "thumbs/" + thumb)
+                            .css("background", "url(" + thumb + ") 50% 50% no-repeat")
                             .addClass("portfolio-item")
                         )
                         .prop('href', "#photo" + id)
@@ -63,11 +61,12 @@ var buildPortfolio = function (index) {
             // Add the image in the proper section
             $("<div/>")
                 .append($('<a/>')
-                    .append($('<img>')
+                    .append($('<div>')
                         .addClass("img-responsive")
-                        .prop('src', baseurl + "thumbs/" + thumb)
+                        .css("background", "url(" + thumb + ") 50% 50% no-repeat")
+                        .addClass("portfolio-item")
                     )
-                    .prop('href', baseurl + photo)
+                    .prop('href', photo)
                     .addClass('thumbnail')
                     .attr('data-gallery', '')
                 )
@@ -92,22 +91,82 @@ var buildPortfolio = function (index) {
     //     .appendTo(portfoliocontainer);
 }
 
-var indexUrl = "http://www.paulin-lemelle.com/photos/index.json";
+// Mode is the way how to the script retrieve the photo (files|facebook)
+// TODO: Design an architecture based on backend types
+var mode = "files"
+
 $(function() {
-    // Try to get the JSON file via usual way
-    $.getJSON(indexUrl, function(index){
-        // Build the portfolio from the json index result
-        buildPortfolio(index);
-    })
-    .error(function() {
-        console.warn("Unbale to retrieve the json index from " + indexUrl +
-                     ", using json proxy http://jsonp.jit.su/");
-        // If error can not retrieve the JSON file, use the jsonp.jit proxy
-        // (usualy cause No 'Access-Control-Allow-Origin' header error)
-        $.getJSON('http://jsonp.jit.su/?callback=?&url=' + indexUrl, function(index){
+    if (mode == "facebook") {
+        var indexUrl = "http://graph.facebook.com/1039179642777962/albums";
+        $.getJSON(indexUrl, function(albumsList) {
+            var index = {}
+
+            // Build the index from the facebook page albums
+            blackList = [ "Profile Pictures", "Cover Photos" ]
+            $.each(albumsList.data, function (album) {
+                album = albumsList.data[album]
+
+                if ($.inArray(album.name, blackList) > -1) { return true ; }
+
+                // Build the list of the photos url indexed by thumbs url
+                var photos = {}
+                var albumUrl = "http://graph.facebook.com/" + album.id
+                $.ajax({
+                    dataType: "json",
+                    url: albumUrl + "/photos",
+                    // TODO: make it async
+                    async: false,
+                    success: function(photosList) {
+                        $.each(photosList.data, function (photo) {
+                            photo = photosList.data[photo]
+                            var photoUrl = "http://graph.facebook.com/" + photo.id + "/picture"
+                            photos[photo.source.replace("s720x720", "p206x206")] = photoUrl
+                        })
+                    }
+                })
+
+                index[album.name] = photos
+            })
+
+            // Build the portfolio from the facebook page albums
             buildPortfolio(index);
         })
-    })
+    }
+    else {
+        var indexUrl = "http://www.paulin-lemelle.com/photos/index.json";
+
+        var formatIndex = function (index) {
+            var formatedIndex = {}
+            $.each(index, function (album) {
+                var photoIndex = {}
+                $.each(index[album], function () {
+                    var photo = this;
+                    var thumb = photo.split(".")[0] + "_tn.jpg";
+                    var baseurl = 'http://www.paulin-lemelle.com/photos/' + encodeURIComponent(album) + "/";
+
+                    photoIndex[ baseurl + "thumbs/" + thumb ] = baseurl + photo
+                })
+                formatedIndex[album] = photoIndex
+            })
+            console.log(formatedIndex)
+            return formatedIndex;
+        }
+
+        // Try to get the JSON file via usual way
+        $.getJSON(indexUrl, function(index){
+            // Build the portfolio from the json index result
+            buildPortfolio(formatIndex(index));
+        })
+        .error(function() {
+            console.warn("Unable to retrieve the json index from " + indexUrl +
+                         ", using json proxy http://jsonp.jit.su/");
+            // If error can not retrieve the JSON file, use the jsonp.jit proxy
+            // (usualy cause No 'Access-Control-Allow-Origin' header error)
+            $.getJSON('http://jsonp.jit.su/?callback=?&url=' + indexUrl, function(index){
+                buildPortfolio(formatIndex(index));
+            })
+        })
+    }
 
     $('#blueimp-gallery').data('useBootstrapModal', 0);
 });
