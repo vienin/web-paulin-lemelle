@@ -93,7 +93,7 @@ var buildPortfolio = function (index) {
 
 // Mode is the way how to the script retrieve the photo (files|facebook)
 // TODO: Design an architecture based on backend types
-var mode = "files"
+var mode = "facebook"
 
 $(function() {
     if (mode == "facebook") {
