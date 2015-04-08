@@ -37,7 +37,7 @@ var buildPortfolio = function (index) {
         $.each(index[album], function () {
             var photo = this;
             var thumb = photo.split(".")[0] + "_tn.jpg";
-            var baseurl = 'http://decatombe.fr/lemelle/photos/' + album + "/";
+            var baseurl = 'http://www.paulin-lemelle.com/photos/' + album + "/";
 
             if (first == undefined) {
                 // Add an entry to the portfolio for the album
@@ -92,7 +92,7 @@ var buildPortfolio = function (index) {
     //     .appendTo(portfoliocontainer);
 }
 
-var indexUrl = "http://decatombe.fr/lemelle/photos/index.json";
+var indexUrl = "http://www.paulin-lemelle.com/photos/index.json";
 $(function() {
     // Try to get the JSON file via usual way
     $.getJSON(indexUrl, function(index){
