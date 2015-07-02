@@ -97,39 +97,47 @@ var mode = "facebook"
 
 $(function() {
     if (mode == "facebook") {
-        var indexUrl = "http://graph.facebook.com/1039179642777962/albums";
-        $.getJSON(indexUrl, function(albumsList) {
-            var index = {}
+        var appID = "908471955878576";
+        var appSecret = "52520b77a9c88c82263003b877d68d45";
+        var tokenUrl = "https://graph.facebook.com/oauth/access_token?client_id=" + appID +
+                       "&client_secret=" + appSecret +
+                       "&grant_type=client_credentials";
 
-            // Build the index from the facebook page albums
-            blackList = [ "Profile Pictures", "Cover Photos" ]
-            $.each(albumsList.data, function (album) {
-                album = albumsList.data[album]
+        $.get(tokenUrl, function(accessToken) {
+            var indexUrl = "https://graph.facebook.com/1039179642777962/albums?" + accessToken;
+            $.getJSON(indexUrl, function(albumsList) {
+                var index = {}
 
-                if ($.inArray(album.name, blackList) > -1) { return true ; }
+                // Build the index from the facebook page albums
+                blackList = [ "Profile Pictures", "Cover Photos" ]
+                $.each(albumsList.data, function (album) {
+                    album = albumsList.data[album]
 
-                // Build the list of the photos url indexed by thumbs url
-                var photos = {}
-                var albumUrl = "http://graph.facebook.com/" + album.id
-                $.ajax({
-                    dataType: "json",
-                    url: albumUrl + "/photos",
-                    // TODO: make it async
-                    async: false,
-                    success: function(photosList) {
-                        $.each(photosList.data, function (photo) {
-                            photo = photosList.data[photo]
-                            var photoUrl = "http://graph.facebook.com/" + photo.id + "/picture"
-                            photos[photo.source.replace("s720x720", "p206x206")] = photoUrl
-                        })
-                    }
+                    if ($.inArray(album.name, blackList) > -1) { return true ; }
+
+                    // Build the list of the photos url indexed by thumbs url
+                    var photos = {}
+                    var albumUrl = "https://graph.facebook.com/" + album.id + "/photos?" + accessToken;
+                    $.ajax({
+                        dataType: "json",
+                        url: albumUrl,
+                        // TODO: make it async
+                        async: false,
+                        success: function(photosList) {
+                            $.each(photosList.data, function (photo) {
+                                photo = photosList.data[photo]
+                                var photoUrl = "https://graph.facebook.com/" + photo.id + "/picture?" + accessToken;
+                                photos[photo.source.replace("s720x720", "p206x206")] = photoUrl;
+                            })
+                        }
+                    })
+
+                    index[album.name] = photos
                 })
 
-                index[album.name] = photos
+                // Build the portfolio from the facebook page albums
+                buildPortfolio(index);
             })
-
-            // Build the portfolio from the facebook page albums
-            buildPortfolio(index);
         })
     }
     else {
