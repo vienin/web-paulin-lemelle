@@ -24,6 +24,11 @@ a:hover {
     height: 200px;
 }
 
+.portfolio-album {
+    width: 324px;
+    height: 324px;
+}
+
 .thumbnail {
     background: #222;
     border-color: #222;

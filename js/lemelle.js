@@ -55,6 +55,7 @@ var buildPortfolio = function (index) {
                     .addClass("col-lg-3")
                     .addClass("col-md-4")
                     .addClass("col-sm-6")
+                    .addClass("portfolio-album")
                     .appendTo(portfoliocontainer);
             }
 
