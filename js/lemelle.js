@@ -1,9 +1,85 @@
+var buildAlbum = function (album, photos, count) {
+
+    var linkscontainer = $('<div/>').addClass("row");
+    var titlecontainer = $('<div/>')
+        .append($('<div/>')
+            .append($('<h2/>')
+                .addClass("page-header")
+                .text(album)
+            )
+            .addClass("col-lg-12")
+        )
+        .addClass("row");
+
+    // Create a dedicated section for the album
+    var id = (count == 0) ? "" : count;
+    var section = $("<section/>")
+        .append($("<div/>")
+            .addClass("row")
+            .addClass("portfolio-section")
+            .attr("id", "photo" + id)
+        )
+        .append(titlecontainer)
+        .append(linkscontainer)
+        .addClass("content-section")
+        .addClass("text-center")
+        .addClass("photo-thumbnails")
+        .insertBefore($('#contact'))
+
+    var first;
+    $.each(photos, function (thumb) {
+        var photo = photos[thumb];
+
+        if (first == undefined) {
+            // Add an entry to the portfolio for the album
+            first = $("<div/>")
+                .append($('<a/>')
+                    .append($('<div>')
+                        .addClass("img-responsive")
+                        .css("background", "url(" + thumb + ") 50% 50% no-repeat")
+                        .addClass("portfolio-item")
+                    )
+                    .prop('href', "#photo" + id)
+                )
+                .append($('<h4/>')
+                    .append($('<a/>').prop('href', "#photo" + id).text(album))
+                )
+                .append($('<p/>'))
+                .addClass("col-lg-3")
+                .addClass("col-md-4")
+                .addClass("col-sm-6")
+                .addClass("portfolio-album")
+                .appendTo(portfoliocontainer);
+        }
+
+        // Add the image in the proper section
+        $("<div/>")
+            .append($('<a/>')
+                .append($('<div>')
+                    .addClass("img-responsive")
+                    .css("background", "url(" + thumb + ") 50% 50% no-repeat")
+                    .addClass("portfolio-item")
+                )
+                .prop('href', photo)
+                .addClass('thumbnail')
+                .attr('data-gallery', '')
+            )
+            .addClass("col-lg-3")
+            .addClass("col-md-4")
+            .addClass("col-sm-6")
+            .addClass("thumb")
+            .appendTo(linkscontainer);
+    });
+}
+
+
 var buildPortfolio = function (index) {
     var albums = Object.keys(index).sort();
 
     // Add the images as links with thumbnails to the page:
-    var count = 0;
     portfoliocontainer = $('<div/>').addClass("row").appendTo($('#portfolio-container'));
+
+    var count = 0;
     $.each(albums, function (i) {
         var album = albums[i];
 
@@ -97,6 +173,8 @@ var buildPortfolio = function (index) {
 var mode = "facebook"
 
 $(function() {
+    portfoliocontainer = $('<div/>').addClass("row").appendTo($('#portfolio-container'));
+
     if (mode == "facebook") {
         var appID = "908471955878576";
         var appSecret = "52520b77a9c88c82263003b877d68d45";
@@ -107,7 +185,8 @@ $(function() {
         $.get(tokenUrl, function(accessToken) {
             var indexUrl = "https://graph.facebook.com/1039179642777962/albums?" + accessToken;
             $.getJSON(indexUrl, function(albumsList) {
-                var index = {}
+                // Add the images as links with thumbnails to the page:
+                var count = 0;
 
                 // Build the index from the facebook page albums
                 blackList = [ "Profile Pictures", "Cover Photos" ]
@@ -119,25 +198,19 @@ $(function() {
                     // Build the list of the photos url indexed by thumbs url
                     var photos = {}
                     var albumUrl = "https://graph.facebook.com/" + album.id + "/photos?" + accessToken;
-                    $.ajax({
-                        dataType: "json",
-                        url: albumUrl,
-                        // TODO: make it async
-                        async: false,
-                        success: function(photosList) {
-                            $.each(photosList.data, function (photo) {
-                                photo = photosList.data[photo]
-                                var photoUrl = "https://graph.facebook.com/" + photo.id + "/picture?" + accessToken;
-                                photos[photo.source.replace("s720x720", "p206x206")] = photoUrl;
-                            })
-                        }
+                    $.getJSON(albumUrl, function(photosList) {
+                       $.each(photosList.data, function (photo) {
+                            photo = photosList.data[photo]
+                            var photoUrl = "https://graph.facebook.com/" + photo.id + "/picture?" + accessToken;
+                            photos[photo.source.replace("s720x720", "p206x206")] = photoUrl;
+                        })
+
+                        // Build the ablum from the facebook page albums photos
+                        buildAlbum(album.name, photos, count);
+
+                        count++;
                     })
-
-                    index[album.name] = photos
                 })
-
-                // Build the portfolio from the facebook page albums
-                buildPortfolio(index);
             })
         })
     }
