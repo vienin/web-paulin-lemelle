@@ -182,14 +182,16 @@ $(function() {
                        "&client_secret=" + appSecret +
                        "&grant_type=client_credentials";
 
-        $.get(tokenUrl, function(accessToken) {
+        $.get(tokenUrl, function(accessTokenData) {
+            var accessToken = "access_token=" + accessTokenData.access_token
+
             var indexUrl = "https://graph.facebook.com/1039179642777962/albums?" + accessToken;
             $.getJSON(indexUrl, function(albumsList) {
                 // Add the images as links with thumbnails to the page:
                 var count = 0;
 
                 // Build the index from the facebook page albums
-                blackList = [ "Profile Pictures", "Cover Photos" ]
+                blackList = [ "Profile Pictures", "Cover Photos", "Timeline Photos" ]
                 $.each(albumsList.data, function (album) {
                     album = albumsList.data[album]
 
@@ -202,11 +204,13 @@ $(function() {
                        $.each(photosList.data, function (photo) {
                             photo = photosList.data[photo]
                             var photoUrl = "https://graph.facebook.com/" + photo.id + "/picture?" + accessToken;
-                            photos[photo.source.replace("s720x720", "p206x206")] = photoUrl;
+                            photos[photoUrl] = photoUrl;
                         })
 
                         // Build the ablum from the facebook page albums photos
-                        buildAlbum(album.name, photos, count);
+                        if (Object.keys(photos).length > 0) {
+                            buildAlbum(album.name, photos, count);
+                        }
 
                         count++;
                     })
